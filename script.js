@@ -27,10 +27,33 @@ updateActiveLink();
 
 const productGrid = document.querySelector('.product-grid');
 const carouselButtons = document.querySelectorAll('[data-carousel-direction]');
+const productCards = [...productGrid.querySelectorAll('.product-card')];
+const productsPerPage = 6;
+let productPage = 0;
+
+const updateProducts = () => {
+  const pageCount = Math.ceil(productCards.length / productsPerPage);
+  const firstProduct = productPage * productsPerPage;
+
+  productCards.forEach((card, index) => {
+    card.classList.toggle('is-visible', index >= firstProduct && index < firstProduct + productsPerPage);
+  });
+
+  carouselButtons.forEach((button) => {
+    const isPrevious = button.dataset.carouselDirection === 'previous';
+    button.disabled = isPrevious ? productPage === 0 : productPage === pageCount - 1;
+    button.setAttribute('aria-disabled', String(button.disabled));
+  });
+};
 
 carouselButtons.forEach((button) => {
   button.addEventListener('click', () => {
     const direction = button.dataset.carouselDirection === 'next' ? 1 : -1;
-    productGrid.scrollBy({ left: direction * productGrid.clientWidth, behavior: 'smooth' });
+    const pageCount = Math.ceil(productCards.length / productsPerPage);
+    productPage = Math.max(0, Math.min(productPage + direction, pageCount - 1));
+    updateProducts();
+    productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
+updateProducts();
