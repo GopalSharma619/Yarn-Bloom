@@ -28,16 +28,23 @@ updateActiveLink();
 const productGrid = document.querySelector('.product-grid');
 const carouselButtons = document.querySelectorAll('[data-carousel-direction]');
 const productCards = [...productGrid.querySelectorAll('.product-card')];
+const collectionSearch = document.querySelector('#collection-search');
+const noResults = document.querySelector('.no-results');
 const productsPerPage = 6;
 let productPage = 0;
 
 const updateProducts = () => {
-  const pageCount = Math.ceil(productCards.length / productsPerPage);
+  const searchTerm = collectionSearch.value.trim().toLowerCase();
+  const matchingCards = productCards.filter((card) => card.textContent.toLowerCase().includes(searchTerm));
+  const pageCount = Math.max(1, Math.ceil(matchingCards.length / productsPerPage));
   const firstProduct = productPage * productsPerPage;
 
-  productCards.forEach((card, index) => {
-    card.classList.toggle('is-visible', index >= firstProduct && index < firstProduct + productsPerPage);
+  productCards.forEach((card) => {
+    const matchingIndex = matchingCards.indexOf(card);
+    card.classList.toggle('is-visible', matchingIndex >= firstProduct && matchingIndex < firstProduct + productsPerPage);
   });
+
+  noResults.hidden = matchingCards.length > 0;
 
   carouselButtons.forEach((button) => {
     const isPrevious = button.dataset.carouselDirection === 'previous';
@@ -45,6 +52,11 @@ const updateProducts = () => {
     button.setAttribute('aria-disabled', String(button.disabled));
   });
 };
+
+collectionSearch.addEventListener('input', () => {
+  productPage = 0;
+  updateProducts();
+});
 
 carouselButtons.forEach((button) => {
   button.addEventListener('click', () => {
